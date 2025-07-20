@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malla Civil Industrial UC</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7fa;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    #creditos {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .fila {
+      display: flex;
+      margin-bottom: 30px;
+      justify-content: center;
+      gap: 40px;
+    }
+    .columna {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background-color: #eaeff5;
+      border-radius: 8px;
+      padding: 10px;
+      width: 240px;
+    }
+    .semestre-titulo {
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .curso {
+      padding: 10px;
+      border-radius: 6px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      position: relative;
+    }
+    .curso.aprobado {
+      background-color: #b3e5fc;
+    }
+    .curso.bloqueado {
+      background-color: #f8bbd0;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .tooltip {
+      visibility: hidden;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+    }
+    .curso:hover .tooltip {
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Civil Industrial UC</h1>
+  <div id="creditos">Créditos aprobados: 0</div>
+  <div id="malla"></div>
+
+  <script>
+    const cursos = [
+      { id: 'MA1001', nombre: 'Intro. al Cálculo', semestre: 1, creditos: 6, prer: [] },
+      { id: 'MA1101', nombre: 'Intro. al Álgebra', semestre: 1, creditos: 6, prer: [] },
+      { id: 'FI1000', nombre: 'Intro. Física Clásica', semestre: 1, creditos: 6, prer: [] },
+      { id: 'CC1000', nombre: 'Herram. Computacionales', semestre: 1, creditos: 3, prer: [] },
+      { id: 'CD1100', nombre: 'Desafíos Innovación', semestre: 1, creditos: 6, prer: [] },
+      { id: 'BT1211', nombre: 'Bio. Aplicada', semestre: 1, creditos: 3, prer: [] },
+
+      { id: 'MA1002', nombre: 'Cálculo Dif. e Integral', semestre: 2, creditos: 6, prer: ['MA1001'] },
+      { id: 'MA1102', nombre: 'Álgebra Lineal', semestre: 2, creditos: 6, prer: ['MA1101'] },
+      { id: 'FI1100', nombre: 'Física Moderna', semestre: 2, creditos: 6, prer: ['FI1000'] },
+      { id: 'CC1002', nombre: 'Intro. a Programación', semestre: 2, creditos: 6, prer: ['CC1000'] },
+      { id: 'CD1201', nombre: 'Proyecto de Innovación', semestre: 2, creditos: 3, prer: ['CD1100'] },
+      { id: 'FG1', nombre: 'Formación General I', semestre: 2, creditos: 3, prer: [] },
+
+      { id: 'MA2001', nombre: 'Cálculo en Varias Vars.', semestre: 3, creditos: 6, prer: ['MA1002'] },
+      { id: 'MA2601', nombre: 'Ecuaciones Dif. Ordinarias', semestre: 3, creditos: 6, prer: ['MA1002'] },
+      { id: 'FI2003', nombre: 'Métodos Experimentales', semestre: 3, creditos: 6, prer: ['FI1100'] },
+      { id: 'FI2001', nombre: 'Mecánica', semestre: 3, creditos: 6, prer: ['FI1000'] },
+      { id: 'IQ2211', nombre: 'Química', semestre: 3, creditos: 6, prer: [] },
+
+      { id: 'IN2201', nombre: 'Economía', semestre: 4, creditos: 6, prer: [] },
+      { id: 'MA2002', nombre: 'Cálculo Avanzado', semestre: 4, creditos: 6, prer: ['MA2001'] },
+      { id: 'FI2002', nombre: 'Electromagnetismo', semestre: 4, creditos: 6, prer: ['FI2001'] },
+      { id: 'FI2004', nombre: 'Termodinámica', semestre: 4, creditos: 6, prer: ['FI1100'] },
+      { id: 'CD2201', nombre: 'Módulo Interdisciplinario', semestre: 4, creditos: 3, prer: ['CD1201'] },
+      { id: 'FG2', nombre: 'Formación General II', semestre: 4, creditos: 3, prer: [] },
+
+      // Agrega aquí los cursos del 5° semestre en adelante
+    ];
+
+    let aprobados = JSON.parse(localStorage.getItem('aprobados')) || [];
+
+    function actualizarCreditos() {
+      let total = cursos.filter(c => aprobados.includes(c.id)).reduce((sum, c) => sum + c.creditos, 0);
+      document.getElementById('creditos').textContent = `Créditos aprobados: ${total}`;
+    }
+
+    function crearMalla() {
+      const malla = document.getElementById('malla');
+      malla.innerHTML = '';
+
+      const semestres = Math.max(...cursos.map(c => c.semestre));
+      for (let fila = 1; fila <= semestres; fila += 2) {
+        const filaDiv = document.createElement('div');
+        filaDiv.className = 'fila';
+
+        for (let col = fila; col < fila + 2; col++) {
+          const colDiv = document.createElement('div');
+          colDiv.className = 'columna';
+          const titulo = document.createElement('div');
+          titulo.className = 'semestre-titulo';
+          titulo.textContent = `Semestre ${col}`;
+          colDiv.appendChild(titulo);
+
+          cursos.filter(c => c.semestre === col).forEach(curso => {
+            const cursoDiv = document.createElement('div');
+            cursoDiv.className = 'curso';
+            cursoDiv.textContent = `${curso.nombre} (${curso.creditos} cr)`;
+
+            const faltan = curso.prer.filter(p => !aprobados.includes(p));
+            if (faltan.length) {
+              cursoDiv.classList.add('bloqueado');
+              const tip = document.createElement('div');
+              tip.className = 'tooltip';
+              tip.textContent = `Requiere: ${faltan.join(', ')}`;
+              cursoDiv.appendChild(tip);
+            } else {
+              cursoDiv.onclick = () => {
+                if (aprobados.includes(curso.id)) {
+                  aprobados = aprobados.filter(id => id !== curso.id);
+                  localStorage.setItem('aprobados', JSON.stringify(aprobados));
+                } else {
+                  aprobados.push(curso.id);
+                  localStorage.setItem('aprobados', JSON.stringify(aprobados));
+                }
+                crearMalla();
+                actualizarCreditos();
+              };
+              if (aprobados.includes(curso.id)) cursoDiv.classList.add('aprobado');
+            }
+
+            colDiv.appendChild(cursoDiv);
+          });
+
+          filaDiv.appendChild(colDiv);
+        }
+
+        malla.appendChild(filaDiv);
+      }
+    }
+
+    crearMalla();
+    actualizarCreditos();
+  </script>
+</body>
+</html>
